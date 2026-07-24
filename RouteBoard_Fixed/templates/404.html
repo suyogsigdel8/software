@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Not found — RouteBoard{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="empty-state">
+    <h3>That's not on the board</h3>
+    <p>The route, trip, or bus you're looking for doesn't exist.</p>
+    <a class="btn btn-amber" style="margin-top:14px;" href="{{ url_for('home') }}">Back to home</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Pay for ticket — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="card form-narrow">
+    <p class="eyebrow" style="color:var(--teal);">One step left</p>
+    <h2 style="font-family:var(--font-display); font-size:1.8rem; margin-top:4px;">Pay for your seat</h2>
+    <p style="color:var(--text-muted); margin-bottom:22px;">
+      Ticket #{{ ticket.id }} &middot; Seat {{ ticket.seat_no }} &middot;
+      Rs {{ '%.0f'|format(payment.amount) }}
+    </p>
+
+    <form method="post">
+      <div class="form-group">
+        <label for="method">Payment method</label>
+        <select id="method" name="method">
+          <option value="card">Card</option>
+          <option value="wallet">Mobile wallet</option>
+          <option value="cash">Cash at counter</option>
+        </select>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:18px;">
+        This is a simulated payment for demo purposes — no card details are collected.
+      </p>
+      <button class="btn btn-amber btn-block" type="submit">Pay Rs {{ '%.0f'|format(payment.amount) }}</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

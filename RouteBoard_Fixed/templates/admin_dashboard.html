@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Admin — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>Admin dashboard</h2>
+      <p>Manage routes, buses, and scheduled trips.</p>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num">{{ stats.users }}</div><div class="label">Users</div></div>
+    <div class="stat-card"><div class="num">{{ stats.buses }}</div><div class="label">Buses</div></div>
+    <div class="stat-card"><div class="num">{{ stats.routes }}</div><div class="label">Routes</div></div>
+    <div class="stat-card"><div class="num">{{ stats.tickets }}</div><div class="label">Confirmed tickets</div></div>
+  </div>
+
+  <div class="two-col" style="margin-bottom:40px;">
+    <div class="card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-top:0;">Add a route</h3>
+      <form method="post" action="{{ url_for('admin_add_route') }}">
+        <div class="form-group"><label>Code</label><input name="code" required placeholder="R5"></div>
+        <div class="form-group"><label>Name</label><input name="name" required></div>
+        <div class="form-group"><label>Origin</label><input name="origin" required></div>
+        <div class="form-group"><label>Destination</label><input name="destination" required></div>
+        <div class="form-group"><label>Distance (km)</label><input name="distance_km" type="number" step="0.1" required></div>
+        <div class="form-group"><label>Duration (min)</label><input name="duration_min" type="number" required></div>
+        <div class="form-group"><label>Base fare (Rs)</label><input name="base_fare" type="number" step="0.1" required></div>
+        <button class="btn btn-amber btn-block" type="submit">Add route</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-top:0;">Add a bus</h3>
+      <form method="post" action="{{ url_for('admin_add_bus') }}">
+        <div class="form-group"><label>Bus number</label><input name="bus_number" required placeholder="BA-1-KHA-1234"></div>
+        <div class="form-group"><label>Capacity</label><input name="capacity" type="number" value="40" required></div>
+        <div class="form-group">
+          <label>Assign driver</label>
+          <select name="driver_id">
+            <option value="">Unassigned</option>
+            {% for d in drivers %}
+            <option value="{{ d.id }}">{{ d.user.name }} ({{ d.license_no }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="btn btn-amber btn-block" type="submit">Add bus</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:40px;">
+    <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-top:0;">Schedule a trip</h3>
+    <form method="post" action="{{ url_for('admin_add_trip') }}">
+      <div class="two-col">
+        <div class="form-group">
+          <label>Route</label>
+          <select name="route_id" required>
+            {% for r in routes %}<option value="{{ r.id }}">{{ r.code }} — {{ r.origin }} to {{ r.destination }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bus</label>
+          <select name="bus_id" required>
+            {% for b in buses %}<option value="{{ b.id }}">{{ b.bus_number }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Departure time</label><input name="departure_time" type="datetime-local" required></div>
+      <button class="btn btn-amber" type="submit">Schedule trip</button>
+    </form>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <h3 style="font-family:var(--font-display); font-size:1.4rem;">Fleet</h3>
+    <a class="btn btn-outline" href="{{ url_for('admin_fleet') }}">Live tracking view</a>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>Bus</th><th>Capacity</th><th>Driver</th><th>Last location</th></tr></thead>
+    <tbody>
+      {% for b in buses %}
+      <tr>
+        <td>{{ b.bus_number }}</td>
+        <td>{{ b.capacity }}</td>
+        <td>{{ b.driver.user.name if b.driver else '—' }}</td>
+        <td>
+          {% if b.current_lat %}
+            <a href="{{ url_for('track_bus', bus_id=b.id) }}">{{ '%.4f'|format(b.current_lat) }}, {{ '%.4f'|format(b.current_lng) }}</a>
+          {% else %} — {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

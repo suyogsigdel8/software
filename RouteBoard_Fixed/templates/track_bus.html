@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Track {{ bus.bus_number }} — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>Live tracking</h2>
+      <p>Bus {{ bus.bus_number }}{% if trip %} &middot; {{ trip.route.origin }} &rarr; {{ trip.route.destination }}{% endif %}</p>
+    </div>
+    {% if bus.driver and bus.driver.on_duty %}
+      <span class="status-tag status-confirmed">On duty</span>
+    {% else %}
+      <span class="status-tag status-cancelled">Off duty</span>
+    {% endif %}
+  </div>
+
+  <div class="map-strip">
+    <div class="map-line">
+      <div class="map-stop" style="left:0;"></div>
+      <div class="map-bus" id="map-bus" data-progress="0.35">&#128652;</div>
+      <div class="map-stop" style="left:calc(100% - 16px);"></div>
+    </div>
+    <div class="map-labels">
+      <span>{{ trip.route.origin if trip else "Origin" }}</span>
+      <span>{{ trip.route.destination if trip else "Destination" }}</span>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:26px;">
+    <div class="card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-top:0;">Reported position</h3>
+      <div class="ticket-grid">
+        <div><span class="k">Latitude</span><span id="track-lat" style="font-family:var(--font-mono);">{{ '%.4f'|format(bus.current_lat) if bus.current_lat is not none else '—' }}</span></div>
+        <div><span class="k">Longitude</span><span id="track-lng" style="font-family:var(--font-mono);">{{ '%.4f'|format(bus.current_lng) if bus.current_lng is not none else '—' }}</span></div>
+        <div><span class="k">Last update</span><span id="track-updated">{{ bus.location_updated_at.strftime('%H:%M:%S') if bus.location_updated_at else 'No location shared yet' }}</span></div>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:16px;">
+        Position refreshes automatically every few seconds from the driver's last shared GPS ping.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-top:0;">Bus details</h3>
+      <div class="ticket-grid">
+        <div><span class="k">Bus</span>{{ bus.bus_number }}</div>
+        <div><span class="k">Capacity</span>{{ bus.capacity }} seats</div>
+        <div><span class="k">Driver</span>{{ bus.driver.user.name if bus.driver else 'Unassigned' }}</div>
+      </div>
+      {% if trip %}
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:16px;">
+        Next departure {{ trip.departure_time.strftime('%a %d %b, %H:%M') }} &middot;
+        {{ trip.seats_available }} / {{ bus.capacity }} seats left.
+      </p>
+      <a class="btn btn-outline" style="margin-top:8px;" href="{{ url_for('route_detail', route_id=trip.route_id) }}">Back to route</a>
+      {% else %}
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:16px;">No scheduled trip found for this bus.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const busId = {{ bus.id }};
+  const latEl = document.getElementById("track-lat");
+  const lngEl = document.getElementById("track-lng");
+  const updatedEl = document.getElementById("track-updated");
+
+  function refresh() {
+    fetch(`/api/bus/${busId}/location`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) return;
+        latEl.textContent = data.lat !== null ? Number(data.lat).toFixed(4) : "—";
+        lngEl.textContent = data.lng !== null ? Number(data.lng).toFixed(4) : "—";
+        if (data.updated_at) {
+          const d = new Date(data.updated_at + "Z");
+          updatedEl.textContent = d.toLocaleTimeString();
+        }
+      })
+      .catch(() => {});
+  }
+
+  setInterval(refresh, 5000);
+})();
+</script>
+{% endblock %}

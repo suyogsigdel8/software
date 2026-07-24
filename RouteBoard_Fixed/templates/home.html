@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}RouteBoard — Book your bus{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Live departures &middot; real seats</p>
+      <h1>Watch the board.<br>Book the seat.<br>Catch the bus.</h1>
+      <p class="lede">RouteBoard puts the destination board from the bus stand right on your
+        phone — search a route, pick a departure, and hold a confirmed seat before you
+        even leave the house.</p>
+      <div class="split-flap" aria-hidden="true">
+        <span class="flap" data-target="0">-</span>
+        <span class="flap" data-target="7">-</span>
+        <span class="flap" data-target=":">-</span>
+        <span class="flap" data-target="0">-</span>
+        <span class="flap" data-target="0">-</span>
+      </div>
+    </div>
+
+    <div class="board-card">
+      <p class="eyebrow" style="margin-bottom:14px;">Next departures</p>
+      {% for r in routes[:4] %}
+      <div class="board-row">
+        <span>
+          <span class="route-badge" style="background:{{ r.color }};">{{ r.code }}</span>
+          <span class="dest">{{ r.destination }}</span>
+        </span>
+        <span class="time">07:00</span>
+      </div>
+      {% else %}
+      <div class="board-row"><span class="dest">No routes scheduled yet.</span></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <form class="search-bar" action="{{ url_for('routes_list') }}" method="get">
+    <div class="field">
+      <label for="origin">From</label>
+      <input id="origin" name="origin" type="text" placeholder="e.g. Kalanki">
+    </div>
+    <div class="field">
+      <label for="destination">To</label>
+      <input id="destination" name="destination" type="text" placeholder="e.g. Koteshwor">
+    </div>
+    <button class="btn btn-amber" type="submit" style="align-self:end;">Search routes</button>
+  </form>
+</div>
+
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>Popular routes</h2>
+      <p>Straight from the destination board — the routes running most often this week.</p>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('routes_list') }}">View all routes</a>
+  </div>
+
+  <div class="route-grid">
+    {% for r in routes %}
+    <a class="route-card" href="{{ url_for('route_detail', route_id=r.id) }}">
+      <span class="route-badge-lg" style="background:{{ r.color }};">{{ r.code }}</span>
+      <h3>{{ r.origin }} &rarr; {{ r.destination }}</h3>
+      <div class="route-line">
+        <span class="dot"></span><span class="stem"></span><span class="dot"></span>
+      </div>
+      <div class="route-meta">
+        <span>{{ r.duration_min }} min</span>
+        <span><strong>Rs {{ '%.0f'|format(r.base_fare) }}</strong> / seat</span>
+      </div>
+    </a>
+    {% else %}
+    <div class="empty-state">
+      <h3>No routes yet</h3>
+      <p>Once an admin adds routes, they'll show up here.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Live fleet — RouteBoard Admin{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>Live fleet</h2>
+      <p>Every bus's last reported position, refreshed automatically.</p>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('admin_dashboard') }}">Back to admin</a>
+  </div>
+
+  <table class="data-table" id="fleet-table">
+    <thead>
+      <tr>
+        <th>Bus</th>
+        <th>Driver</th>
+        <th>Status</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Last update</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in buses %}
+      <tr data-bus-id="{{ b.id }}">
+        <td>{{ b.bus_number }}</td>
+        <td>{{ b.driver.user.name if b.driver else '—' }}</td>
+        <td class="cell-status">
+          {% if b.driver and b.driver.on_duty %}
+            <span class="status-tag status-confirmed">On duty</span>
+          {% else %}
+            <span class="status-tag status-cancelled">Off duty</span>
+          {% endif %}
+        </td>
+        <td class="cell-lat" style="font-family:var(--font-mono);">{{ '%.4f'|format(b.current_lat) if b.current_lat is not none else '—' }}</td>
+        <td class="cell-lng" style="font-family:var(--font-mono);">{{ '%.4f'|format(b.current_lng) if b.current_lng is not none else '—' }}</td>
+        <td class="cell-updated">{{ b.location_updated_at.strftime('%H:%M:%S') if b.location_updated_at else 'No location shared yet' }}</td>
+        <td><a class="btn btn-outline" href="{{ url_for('track_bus', bus_id=b.id) }}">Track</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7">No buses in the fleet yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-top:16px;" id="fleet-refresh-note">
+    Refreshing every 5 seconds.
+  </p>
+</section>
+
+<script>
+(function () {
+  const noteEl = document.getElementById("fleet-refresh-note");
+
+  function refresh() {
+    fetch("/api/fleet/locations")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.buses) return;
+        data.buses.forEach((bus) => {
+          const row = document.querySelector(`tr[data-bus-id="${bus.id}"]`);
+          if (!row) return;
+
+          row.querySelector(".cell-lat").textContent = bus.lat !== null ? Number(bus.lat).toFixed(4) : "—";
+          row.querySelector(".cell-lng").textContent = bus.lng !== null ? Number(bus.lng).toFixed(4) : "—";
+
+          const statusCell = row.querySelector(".cell-status");
+          statusCell.innerHTML = bus.on_duty
+            ? '<span class="status-tag status-confirmed">On duty</span>'
+            : '<span class="status-tag status-cancelled">Off duty</span>';
+
+          const updatedCell = row.querySelector(".cell-updated");
+          if (bus.updated_at) {
+            const d = new Date(bus.updated_at + "Z");
+            updatedCell.textContent = d.toLocaleTimeString();
+          } else {
+            updatedCell.textContent = "No location shared yet";
+          }
+        });
+        noteEl.textContent = "Refreshing every 5 seconds. Last synced " + new Date().toLocaleTimeString() + ".";
+      })
+      .catch(() => {});
+  }
+
+  setInterval(refresh, 5000);
+})();
+</script>
+{% endblock %}
