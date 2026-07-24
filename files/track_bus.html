@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Track bus {{ bus.bus_number }} — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <p class="eyebrow" style="color:var(--teal);">Live position</p>
+  <h2 style="font-family:var(--font-display); font-size:2rem; margin-top:4px;">Bus {{ bus.bus_number }}</h2>
+  <p style="color:var(--text-muted); margin-bottom:26px;">
+    {% if trip %}{{ trip.route.origin }} &rarr; {{ trip.route.destination }}{% else %}No active trip{% endif %}
+    &middot; last ping {{ bus.location_updated_at.strftime('%H:%M:%S') if bus.location_updated_at else 'never' }}
+  </p>
+
+  <div class="map-strip">
+    <div class="map-line">
+      <div class="map-stop" style="left:0%;"></div>
+      <div class="map-stop" style="left:50%;"></div>
+      <div class="map-stop" style="left:100%;"></div>
+      <div class="map-bus" id="map-bus" data-progress="0.35">🚌</div>
+    </div>
+    <div class="map-labels">
+      <span>{{ trip.route.origin if trip else 'Start' }}</span>
+      <span>{{ trip.route.destination if trip else 'End' }}</span>
+    </div>
+  </div>
+
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-top:18px;">
+    Position updates from the driver's shared GPS location; between pings this view
+    animates a smoothed estimate along the route line.
+  </p>
+</section>
+{% endblock %}

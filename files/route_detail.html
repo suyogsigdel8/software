@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ route.origin }} to {{ route.destination }} — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <span class="route-badge-lg" style="background:{{ route.color }};">{{ route.code }}</span>
+  <h2 style="font-family:var(--font-display); font-size:2.2rem; margin:10px 0 4px;">
+    {{ route.origin }} &rarr; {{ route.destination }}
+  </h2>
+  <p style="color:var(--text-muted); margin-bottom:30px;">
+    {{ route.distance_km }} km &middot; about {{ route.duration_min }} min &middot;
+    base fare Rs {{ '%.0f'|format(route.base_fare) }}
+  </p>
+
+  <h3 style="font-family:var(--font-display); font-size:1.4rem;">Upcoming departures</h3>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Departure</th><th>Bus</th><th>Seats left</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for t in trips %}
+      <tr>
+        <td>{{ t.departure_time.strftime('%a %d %b, %H:%M') }}</td>
+        <td>{{ t.bus.bus_number }}</td>
+        <td>{{ t.seats_available }} / {{ t.bus.capacity }}</td>
+        <td>
+          {% if t.seats_available > 0 %}
+          <a class="btn btn-amber" href="{{ url_for('book_trip', trip_id=t.id) }}">Book seat</a>
+          {% else %}
+          <span class="status-tag status-cancelled">Full</span>
+          {% endif %}
+          <a class="btn btn-outline" href="{{ url_for('track_bus', bus_id=t.bus.id) }}">Track bus</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4">No departures scheduled for this route yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

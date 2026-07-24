@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}My tickets — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>My tickets</h2>
+      <p>Every seat you've held, past and upcoming.</p>
+    </div>
+  </div>
+
+  {% for t in tickets %}
+  <div class="ticket" style="margin-bottom:20px;">
+    <div class="ticket-main">
+      <h3 class="ticket-route">{{ t.trip.route.origin }} &rarr; {{ t.trip.route.destination }}</h3>
+      <p class="ticket-sub">
+        {{ t.trip.departure_time.strftime('%a %d %b, %H:%M') }} &middot; Bus {{ t.trip.bus.bus_number }}
+      </p>
+      <div class="ticket-grid">
+        <div><span class="k">Ticket</span>#{{ t.id }}</div>
+        <div><span class="k">Fare</span>Rs {{ '%.0f'|format(t.fare) }}</div>
+        <div><span class="k">Status</span>
+          <span class="status-tag status-{{ t.status }}">{{ t.status }}</span>
+        </div>
+      </div>
+      {% if t.status == "pending" %}
+      <div style="margin-top:16px;">
+        <a class="btn btn-amber" href="{{ url_for('pay_ticket', ticket_id=t.id) }}">Complete payment</a>
+      </div>
+      {% elif t.status == "confirmed" %}
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <a class="btn btn-outline" href="{{ url_for('track_bus', bus_id=t.trip.bus.id) }}">Track bus</a>
+        <form method="post" action="{{ url_for('cancel_ticket', ticket_id=t.id) }}">
+          <button class="btn btn-danger" type="submit">Cancel ticket</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    <div class="ticket-stub">
+      <span class="seat-label">Seat</span>
+      <span class="seat-no">{{ t.seat_no }}</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No tickets yet</h3>
+    <p>Search a route and book your first seat.</p>
+    <a class="btn btn-amber" style="margin-top:14px;" href="{{ url_for('routes_list') }}">Browse routes</a>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

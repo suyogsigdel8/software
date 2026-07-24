@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Routes — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <div>
+      <h2>All routes</h2>
+      <p>Every line currently on the board.</p>
+    </div>
+  </div>
+
+  <form class="search-bar" style="margin-top:0; margin-bottom:30px; box-shadow:none;" method="get">
+    <div class="field">
+      <label for="origin">From</label>
+      <input id="origin" name="origin" value="{{ q_origin }}" type="text">
+    </div>
+    <div class="field">
+      <label for="destination">To</label>
+      <input id="destination" name="destination" value="{{ q_dest }}" type="text">
+    </div>
+    <button class="btn btn-outline" type="submit" style="align-self:end;">Filter</button>
+  </form>
+
+  <div class="route-grid">
+    {% for r in routes %}
+    <a class="route-card" href="{{ url_for('route_detail', route_id=r.id) }}">
+      <span class="route-badge-lg" style="background:{{ r.color }};">{{ r.code }}</span>
+      <h3>{{ r.origin }} &rarr; {{ r.destination }}</h3>
+      <div class="route-line">
+        <span class="dot"></span><span class="stem"></span><span class="dot"></span>
+      </div>
+      <div class="route-meta">
+        <span>{{ r.duration_min }} min &middot; {{ r.distance_km }} km</span>
+        <span><strong>Rs {{ '%.0f'|format(r.base_fare) }}</strong></span>
+      </div>
+    </a>
+    {% else %}
+    <div class="empty-state">
+      <h3>No routes match that search</h3>
+      <p>Try a different origin or destination.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

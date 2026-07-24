@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Book seat — RouteBoard{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <div class="card form-narrow">
+    <p class="eyebrow" style="color:var(--teal);">Confirm booking</p>
+    <h2 style="font-family:var(--font-display); font-size:1.8rem; margin-top:4px;">
+      {{ trip.route.origin }} &rarr; {{ trip.route.destination }}
+    </h2>
+    <p style="color:var(--text-muted); margin-bottom:22px;">
+      {{ trip.departure_time.strftime('%a %d %b, %H:%M') }} &middot; Bus {{ trip.bus.bus_number }}
+      &middot; {{ trip.seats_available }} seats left
+    </p>
+
+    <div class="ticket-grid" style="margin-bottom:22px;">
+      <div><span class="k">Seat</span> #{{ trip.seats_booked + 1 }}</div>
+      <div><span class="k">Fare</span> Rs {{ '%.0f'|format(trip.route.base_fare) }}</div>
+      <div><span class="k">Status</span> Pending payment</div>
+    </div>
+
+    <form method="post">
+      <button class="btn btn-amber btn-block" type="submit">Reserve this seat</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
